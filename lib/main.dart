@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
-void main() => runApp(QuoteGenerator());
+// Stateful Widgets
+import 'package:quotesgenerator/widgets/quotations.dart';
 
-class QuoteGenerator extends StatelessWidget {
+void main() => runApp(QuotesGenerator());
+
+class QuotesGenerator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -12,10 +15,10 @@ class QuoteGenerator extends StatelessWidget {
       ),
       home: Scaffold(
         appBar: AppBar(
-          title: Text('Welcome to Flutter'),
+          title: Text('MLKJ Sash and Upholstery Furniture Shop'),
         ),
         body: Center(
-          child: Text('Hello World'),
+          child: Quotations(),
         ),
       ),
     );

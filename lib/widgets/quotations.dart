@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
-// States
-import 'package:quotesgenerator/states/quotationsstate.dart';
+import 'package:quotationsgenerator/states/quotationsstate.dart';
 
 class Quotations extends StatefulWidget {
   @override

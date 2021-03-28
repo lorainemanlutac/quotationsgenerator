@@ -1,4 +1,4 @@
-package com.example.quotesgenerator
+package com.example.quotationsgenerator
 
 import io.flutter.embedding.android.FlutterActivity
 

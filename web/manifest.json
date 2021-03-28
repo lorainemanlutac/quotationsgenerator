@@ -1,6 +1,6 @@
 {
-  "name": "quotesgenerator",
-  "short_name": "quotesgenerator",
+  "name": "quotationsgenerator",
+  "short_name": "quotationsgenerator",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#0175C2",

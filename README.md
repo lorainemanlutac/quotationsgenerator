@@ -1,4 +1,4 @@
-# quotesgenerator
+# quotationsgenerator
 
 A new Flutter project.
 

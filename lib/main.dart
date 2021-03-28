@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:quotationsgenerator/helpers/constants.dart';
+import 'package:quotationsgenerator/styles/css.dart';
+import 'package:quotationsgenerator/widgets/quotations.dart';
 
-// Stateful Widgets
-import 'package:quotesgenerator/widgets/quotations.dart';
+void main() => runApp(QuotationsGenerator());
 
-void main() => runApp(QuotesGenerator());
-
-class QuotesGenerator extends StatelessWidget {
+class QuotationsGenerator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Welcome to Flutter',
       theme: ThemeData(
-        primarySwatch: Colors.red,
+        primarySwatch: primarySwatch,
+        textTheme: textTheme,
       ),
       home: Scaffold(
         appBar: AppBar(
-          title: Text('MLKJ Sash and Upholstery Furniture Shop'),
+          title: appTitle,
         ),
         body: Center(
           child: Quotations(),

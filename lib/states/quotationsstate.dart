@@ -18,12 +18,6 @@ class QuotationsState extends State<Quotations> with RouteAware {
   GlobalKey _fabKey = GlobalKey();
 
   @override
-  didChangeDependencies() {
-    super.didChangeDependencies();
-    routeObserver.subscribe(this, ModalRoute.of(context));
-  }
-
-  @override
   dispose() {
     super.dispose();
     routeObserver.unsubscribe(this);
@@ -59,8 +53,11 @@ class QuotationsState extends State<Quotations> with RouteAware {
       );
 
   Widget _buildQuotations() {
+    var length = _quotations.length;
+
     return ListView.builder(
         padding: EdgeInsets.all(padding),
+        itemCount: length == 1 ? length : length * 2,
         itemBuilder: (context, i) {
           final index = i ~/ 2;
 
@@ -68,9 +65,7 @@ class QuotationsState extends State<Quotations> with RouteAware {
             return Divider();
           }
 
-          return index >= _quotations.length
-              ? null
-              : _buildRow(_quotations[index]);
+          return _buildRow(_quotations[index]);
         });
   }
 
@@ -108,7 +103,8 @@ class QuotationsState extends State<Quotations> with RouteAware {
   }
 
   void _pushQuotationForm(BuildContext context) {
-    final RenderBox fabRenderBox = _fabKey.currentContext.findRenderObject();
+    final RenderBox fabRenderBox =
+        _fabKey.currentContext!.findRenderObject() as RenderBox;
     final fabSize = fabRenderBox.size;
     final fabOffset = fabRenderBox.localToGlobal(Offset.zero);
 
@@ -126,13 +122,13 @@ class QuotationsState extends State<Quotations> with RouteAware {
   Widget _buildTransition(
     Widget page,
     Animation<double> animation,
-    Size fabSize,
+    Size? fabSize,
     Offset fabOffset,
   ) {
     if (animation.value == 1) return page;
 
     final borderTween = BorderRadiusTween(
-      begin: BorderRadius.circular(fabSize.width / 2),
+      begin: BorderRadius.circular(fabSize!.width / 2),
       end: BorderRadius.circular(0.0),
     );
     final sizeTween = SizeTween(
@@ -163,7 +159,7 @@ class QuotationsState extends State<Quotations> with RouteAware {
     );
 
     Widget positionedClippedChild(Widget child) => Positioned(
-        width: size.width,
+        width: size!.width,
         height: size.height,
         left: offset.dx,
         top: offset.dy,

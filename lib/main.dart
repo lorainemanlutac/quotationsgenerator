@@ -17,9 +17,7 @@ class QuotationsGenerator extends StatelessWidget {
         appBar: AppBar(
           title: appTitle,
         ),
-        body: Center(
-          child: Quotations(),
-        ),
+        body: Quotations(),
       ),
     );
   }

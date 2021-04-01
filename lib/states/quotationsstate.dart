@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:quotationsgenerator/helpers/utils.dart';
 import 'package:quotationsgenerator/styles/css.dart';
 import 'package:quotationsgenerator/widgets/quotation.dart';
-import 'package:quotationsgenerator/widgets/quotationform.dart';
 import 'package:quotationsgenerator/widgets/quotations.dart';
 
 final routeObserver = RouteObserver<PageRoute>();
@@ -112,7 +111,7 @@ class QuotationsState extends State<Quotations> with RouteAware {
       transitionDuration: duration,
       pageBuilder: (BuildContext context, Animation<double> animation,
               Animation<double> secondaryAnimation) =>
-          QuotationForm(),
+          Quotation(title: 'Quotation'),
       transitionsBuilder: (BuildContext context, Animation<double> animation,
               Animation<double> secondaryAnimation, Widget child) =>
           _buildTransition(child, animation, fabSize, fabOffset),

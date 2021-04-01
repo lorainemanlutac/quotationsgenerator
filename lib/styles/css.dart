@@ -11,3 +11,7 @@ final textTheme = TextTheme(
   subtitle1: biggerFont,
 );
 final addIcon = const Icon(Icons.add);
+final formPadding = EdgeInsets.symmetric(horizontal: 8, vertical: 8);
+final fieldBorder = OutlineInputBorder(
+  borderSide: const BorderSide(color: Colors.white, width: 2.0),
+);

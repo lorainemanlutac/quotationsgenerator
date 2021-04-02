@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:quotationsgenerator/helpers/constants.dart';
+import 'package:quotationsgenerator/assets/translations/en.dart';
 import 'package:quotationsgenerator/styles/css.dart';
-import 'package:quotationsgenerator/widgets/quotations.dart';
+import 'package:quotationsgenerator/features/quotations/quotations.dart';
 
 void main() => runApp(QuotationsGenerator());
 

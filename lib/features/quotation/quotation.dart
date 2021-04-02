@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:quotationsgenerator/states/quotationstate.dart';
+import 'package:quotationsgenerator/features/quotation/quotationstate.dart';
 
 class Quotation extends StatefulWidget {
   final title;

@@ -1,8 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:quotationsgenerator/assets/translations/en.dart';
 import 'package:quotationsgenerator/helpers/utils.dart';
 import 'package:quotationsgenerator/styles/css.dart';
-import 'package:quotationsgenerator/widgets/quotation.dart';
-import 'package:quotationsgenerator/widgets/quotations.dart';
+import 'package:quotationsgenerator/features/quotation/quotation.dart';
+import 'package:quotationsgenerator/features/quotations/quotations.dart';
 
 final routeObserver = RouteObserver<PageRoute>();
 final duration = const Duration(milliseconds: 300);
@@ -13,7 +15,18 @@ void main() => runApp(MaterialApp(
     ));
 
 class QuotationsState extends State<Quotations> with RouteAware {
-  var _quotations = [];
+  var _quotations = [
+    {
+      'fileName': 'Music Box',
+      'timestamp': '2021-03-08T17:44:00.000Z',
+      'client': 'Daruma Corporation'
+    },
+    {
+      'fileName': 'QC Condo',
+      'timestamp': '2021-03-08T17:44:00.000Z',
+      'client': 'Isay Ramos'
+    },
+  ];
   GlobalKey _fabKey = GlobalKey();
 
   @override
@@ -24,26 +37,13 @@ class QuotationsState extends State<Quotations> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
-    _quotations = [
-      {
-        'fileName': 'Music Box',
-        'timestamp': '2021-03-08T17:44:00.000Z',
-        'client': 'Daruma Corporation'
-      },
-      {
-        'fileName': 'QC Condo',
-        'timestamp': '2021-03-08T17:44:00.000Z',
-        'client': 'Isay Ramos'
-      },
-    ];
-
     return Scaffold(
       body: _buildQuotations(),
       floatingActionButton: _buildFAB(context, key: _fabKey),
     );
   }
 
-  Widget _buildFAB(context, {key}) => FloatingActionButton(
+  Widget _buildFAB(BuildContext context, {key}) => FloatingActionButton(
         elevation: 0,
         backgroundColor: secondarySwatch,
         key: key,
@@ -52,25 +52,74 @@ class QuotationsState extends State<Quotations> with RouteAware {
       );
 
   Widget _buildQuotations() {
-    var length = _quotations.length;
+    final length = _quotations.length;
 
     return ListView.builder(
-        padding: EdgeInsets.all(padding),
+        padding: padding,
         itemCount: length == 1 ? length : length * 2,
         itemBuilder: (context, i) {
           final index = i ~/ 2;
+          final item = index + 1;
 
           if (i.isOdd) {
             return Divider();
           }
 
-          return _buildRow(_quotations[index]);
+          return Dismissible(
+            key: UniqueKey(),
+            background: Container(
+              color: Colors.red,
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              alignment: AlignmentDirectional.centerEnd,
+              child: Icon(
+                Icons.delete,
+                color: Colors.white,
+              ),
+            ),
+            direction: DismissDirection.endToStart,
+            dismissThresholds: {DismissDirection.endToStart: 0.1},
+            onDismissed: (direction) {
+              setState(() {
+                _quotations.removeAt(index);
+              });
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Item no. $item removed.')));
+            },
+            child: _buildRow(_quotations[index]),
+            confirmDismiss: (direction) => promptUser(direction),
+          );
         });
+  }
+
+  Future<bool> promptUser(DismissDirection direction) async {
+    return await showCupertinoDialog<bool>(
+          context: context,
+          builder: (context) => CupertinoAlertDialog(
+            content: Text('Are you sure you want to delete?'),
+            actions: <Widget>[
+              CupertinoDialogAction(
+                child: Text('Ok'),
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+              ),
+              CupertinoDialogAction(
+                child: Text('Cancel'),
+                onPressed: () {
+                  return Navigator.of(context).pop(false);
+                },
+              )
+            ],
+          ),
+        ) ??
+        false;
   }
 
   Widget _buildRow(quotation) {
     final fileName = quotation['fileName'];
-    var dateTime = convertDate(quotation['timestamp']);
+    final dateTime = convertDate(quotation['timestamp']);
+    final client = quotation['client'];
 
     return ListTile(
       leading: Icon(
@@ -79,7 +128,7 @@ class QuotationsState extends State<Quotations> with RouteAware {
         size: iconSize,
       ),
       title: Text(fileName),
-      subtitle: Text(dateTime + '\n' + quotation['client']),
+      subtitle: Text('$dateTime\n$client'),
       onTap: () {
         _pushQuotation(fileName);
       },
@@ -111,7 +160,7 @@ class QuotationsState extends State<Quotations> with RouteAware {
       transitionDuration: duration,
       pageBuilder: (BuildContext context, Animation<double> animation,
               Animation<double> secondaryAnimation) =>
-          Quotation(title: 'Quotation'),
+          Quotation(title: formTitle),
       transitionsBuilder: (BuildContext context, Animation<double> animation,
               Animation<double> secondaryAnimation, Widget child) =>
           _buildTransition(child, animation, fabSize, fabOffset),

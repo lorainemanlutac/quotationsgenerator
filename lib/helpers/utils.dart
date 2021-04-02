@@ -2,7 +2,7 @@ import 'package:intl/intl.dart';
 
 // ignore: top_level_function_literal_block
 var convertDate = (timestamp) {
-  var parsedDateTime = DateTime.parse(timestamp).toLocal();
+  final parsedDateTime = DateTime.parse(timestamp).toLocal();
 
   return DateFormat.yMMMd().format(parsedDateTime) +
       ' ' +
@@ -10,9 +10,9 @@ var convertDate = (timestamp) {
 };
 
 // ignore: top_level_function_literal_block
-var validator = (type, value) {
-  if (value == null || value.isEmpty) {
-    return 'Please ' + (type == 'text' ? 'enter' : 'select') + ' some text';
+var validator = (type, val, defaultVal) {
+  if (val == null || val == defaultVal) {
+    return 'Required';
   }
   return null;
 };

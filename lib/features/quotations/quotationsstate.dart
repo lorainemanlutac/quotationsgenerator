@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:quotationsgenerator/assets/translations/en.dart';
 import 'package:quotationsgenerator/helpers/utils.dart';
+import 'package:quotationsgenerator/models/QuotationsModel.dart';
 import 'package:quotationsgenerator/styles/css.dart';
 import 'package:quotationsgenerator/features/quotation/quotation.dart';
 import 'package:quotationsgenerator/features/quotations/quotations.dart';
@@ -15,17 +16,17 @@ void main() => runApp(MaterialApp(
     ));
 
 class QuotationsState extends State<Quotations> with RouteAware {
-  var _quotations = [
-    {
-      'fileName': 'Music Box',
-      'timestamp': '2021-03-08T17:44:00.000Z',
-      'client': 'Daruma Corporation'
-    },
-    {
-      'fileName': 'QC Condo',
-      'timestamp': '2021-03-08T17:44:00.000Z',
-      'client': 'Isay Ramos'
-    },
+  final _quotations = <QuotationsModel>[
+    QuotationsModel(
+      'Music Box',
+      '2021-03-08T17:44:00.000Z',
+      'Daruma Corporation',
+    ),
+    QuotationsModel(
+      'QC Condo',
+      '2021-03-08T17:44:00.000Z',
+      'Isay Ramos',
+    ),
   ];
   GlobalKey _fabKey = GlobalKey();
 
@@ -59,7 +60,6 @@ class QuotationsState extends State<Quotations> with RouteAware {
         itemCount: length == 1 ? length : length * 2,
         itemBuilder: (context, i) {
           final index = i ~/ 2;
-          final item = index + 1;
 
           if (i.isOdd) {
             return Divider();
@@ -79,17 +79,32 @@ class QuotationsState extends State<Quotations> with RouteAware {
             direction: DismissDirection.endToStart,
             dismissThresholds: {DismissDirection.endToStart: 0.1},
             onDismissed: (direction) {
-              setState(() {
-                _quotations.removeAt(index);
-              });
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Item no. $item removed.')));
+              return handleDismiss(direction, index);
             },
             child: _buildRow(_quotations[index]),
             confirmDismiss: (direction) => promptUser(direction),
           );
         });
+  }
+
+  void handleDismiss(direction, index) {
+    final swipedQuotation = _quotations[index];
+
+    _quotations.removeAt(index);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Deleted. Do you want to undo?'),
+        duration: Duration(seconds: 5),
+        action: SnackBarAction(
+            label: 'Undo',
+            textColor: Colors.yellow,
+            onPressed: () {
+              final copiedEmail = QuotationsModel.copy(swipedQuotation);
+              setState(() => _quotations.insert(index, copiedEmail));
+            }),
+      ),
+    );
   }
 
   Future<bool> promptUser(DismissDirection direction) async {
@@ -117,9 +132,9 @@ class QuotationsState extends State<Quotations> with RouteAware {
   }
 
   Widget _buildRow(quotation) {
-    final fileName = quotation['fileName'];
-    final dateTime = convertDate(quotation['timestamp']);
-    final client = quotation['client'];
+    final subject = quotation.subject;
+    final dateTime = convertDateTime(quotation.timestamp);
+    final location = quotation.location;
 
     return ListTile(
       leading: Icon(
@@ -127,10 +142,10 @@ class QuotationsState extends State<Quotations> with RouteAware {
         color: secondarySwatch,
         size: iconSize,
       ),
-      title: Text(fileName),
-      subtitle: Text('$dateTime\n$client'),
+      title: Text(subject),
+      subtitle: Text('$dateTime\n$location'),
       onTap: () {
-        _pushQuotation(fileName);
+        _pushQuotation(subject);
       },
       trailing: Icon(
         Icons.arrow_right,
@@ -140,11 +155,11 @@ class QuotationsState extends State<Quotations> with RouteAware {
     );
   }
 
-  void _pushQuotation(String fileName) {
+  void _pushQuotation(String subject) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
-          return Quotation(title: fileName);
+          return Quotation(title: subject);
         },
       ),
     );

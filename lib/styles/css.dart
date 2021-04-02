@@ -15,5 +15,5 @@ final formPadding = EdgeInsets.all(8.0);
 final fieldBorder = OutlineInputBorder(
   borderSide: const BorderSide(color: Colors.white, width: 2.0),
 );
-final fullWidth = (context) => MediaQuery.of(context).size.width - 16.0;
+final fullFormWidth = (context) => MediaQuery.of(context).size.width - 16.0;
 final boxing = EdgeInsets.only(right: 8.0, top: 24.0, left: 8.0, bottom: 8.0);

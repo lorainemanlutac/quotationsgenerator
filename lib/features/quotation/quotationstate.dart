@@ -8,10 +8,11 @@ import 'package:quotationsgenerator/helpers/extensions.dart';
 
 class QuotationState extends State<Quotation> {
   final _formKey = GlobalKey<FormState>();
-  String dropdownValue = 'Unit';
-  int quantityValue = 0;
-  double unitPriceValue = 0.0;
-  double totalPriceValue = 0.0;
+  String dropdownValue = 'UNIT';
+  List<TextEditingController> quantityValueTECs = [];
+  List<TextEditingController> unitPriceValueTECs = [];
+  List<TextEditingController> totalPriceValueTECs = [];
+  List<TextEditingController> itemValueTECs = [];
   List<Widget> items = <Widget>[];
   double _formHeight = 80.0;
   int index = 0;
@@ -21,7 +22,9 @@ class QuotationState extends State<Quotation> {
   void initState() {
     super.initState();
     postInit(() {
-      setState(() => items.add(_createForm(0)));
+      setState(() {
+        items.add(_createForm(0));
+      });
     });
   }
 
@@ -60,6 +63,8 @@ class QuotationState extends State<Quotation> {
   }
 
   Widget _buildForm(BuildContext context) {
+    final date = convertDate(DateTime.now().toString());
+
     return Form(
       key: _formKey,
       child: Container(
@@ -72,7 +77,7 @@ class QuotationState extends State<Quotation> {
               child: Row(children: <Widget>[
                 Container(
                   padding: formPadding,
-                  width: fullWidth(context),
+                  width: fullFormWidth(context),
                   child: TextFormField(
                     keyboardType: TextInputType.emailAddress,
                     cursorColor: Colors.white,
@@ -92,7 +97,7 @@ class QuotationState extends State<Quotation> {
               child: Row(children: <Widget>[
                 Container(
                   padding: formPadding,
-                  width: fullWidth(context),
+                  width: fullFormWidth(context),
                   child: TextFormField(
                     cursorColor: Colors.white,
                     decoration: InputDecoration(
@@ -110,8 +115,53 @@ class QuotationState extends State<Quotation> {
               scrollDirection: Axis.horizontal,
               child: Row(children: <Widget>[
                 Container(
+                  padding: formPadding,
+                  width: fullFormWidth(context),
+                  child: Text(
+                    'MLKJ Sash and Upholstery Furniture Shop\nAguinaldo Hi-way, Trece Martires Cavite 4109\nContact No.: +63 936 938 8505\nE-mail: theresa_manlutac@yahoo.com',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ]),
+            ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(children: <Widget>[
+                Container(
+                  padding: formPadding,
+                  width: fullFormWidth(context),
+                  child: Text(
+                    'Date: $date',
+                    textAlign: TextAlign.right,
+                  ),
+                ),
+              ]),
+            ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(children: <Widget>[
+                Container(
+                  padding: formPadding,
+                  width: fullFormWidth(context),
+                  child: TextFormField(
+                    cursorColor: Colors.white,
+                    decoration: InputDecoration(
+                      labelText: location,
+                      focusedBorder: fieldBorder,
+                    ),
+                    validator: (value) {
+                      return validator('text', value, '');
+                    },
+                  ),
+                ),
+              ]),
+            ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(children: <Widget>[
+                Container(
                   height: _formHeight,
-                  width: fullWidth(context),
+                  width: fullFormWidth(context),
                   child: Column(
                     children: [
                       ListView.builder(
@@ -146,6 +196,48 @@ class QuotationState extends State<Quotation> {
                 )
               ]),
             ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(children: <Widget>[
+                Container(
+                  padding: formPadding,
+                  width: fullFormWidth(context),
+                  child: Text(
+                    'Total Price ₱\nOthers (Discount) \nGrand Total Price ',
+                    textAlign: TextAlign.right,
+                  ),
+                ),
+              ]),
+            ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(children: <Widget>[
+                Container(
+                  padding: formPadding,
+                  width: fullFormWidth(context),
+                  child: TextFormField(
+                    cursorColor: Colors.white,
+                    decoration: InputDecoration(
+                      labelText: note,
+                      focusedBorder: fieldBorder,
+                    ),
+                  ),
+                ),
+              ]),
+            ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(children: <Widget>[
+                Container(
+                  padding: formPadding,
+                  width: fullFormWidth(context),
+                  child: Text(
+                    'If you have any questions regarding the quotation, please feel free to contact us.\nTHANK YOU FOR YOUR BUSINESS!',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ]),
+            ),
           ],
         ),
       ),
@@ -153,6 +245,16 @@ class QuotationState extends State<Quotation> {
   }
 
   Widget _createForm(i) {
+    TextEditingController quantityValueController = TextEditingController();
+    TextEditingController unitPriceValueController = TextEditingController();
+    TextEditingController totalPriceValueController = TextEditingController();
+    TextEditingController itemValueController = TextEditingController();
+
+    quantityValueTECs.add(quantityValueController);
+    unitPriceValueTECs.add(unitPriceValueController);
+    totalPriceValueTECs.add(totalPriceValueController);
+    itemValueTECs.add(itemValueController);
+
     return Row(
       key: UniqueKey(),
       children: [
@@ -168,11 +270,12 @@ class QuotationState extends State<Quotation> {
             )),
         Container(
           padding: formPadding,
-          width: MediaQuery.of(context).size.width * .09,
+          width: MediaQuery.of(context).size.width * .1,
           child: TextFormField(
+            controller: quantityValueTECs[i],
             cursorColor: Colors.white,
             decoration: InputDecoration(
-              labelText: 'Qty',
+              labelText: qty,
               focusedBorder: fieldBorder,
             ),
             textAlign: TextAlign.right,
@@ -181,16 +284,13 @@ class QuotationState extends State<Quotation> {
               return _validator('text', value, '', i);
             },
             onChanged: (newValue) {
-              setState(() {
-                quantityValue = int.parse(newValue);
-                totalPriceValue = quantityValue * unitPriceValue;
-              });
+              _onChange();
             },
           ),
         ),
         Container(
           padding: boxing,
-          width: MediaQuery.of(context).size.width * .1,
+          width: MediaQuery.of(context).size.width * .11,
           child: DropdownButtonFormField<String>(
             value: dropdownValue,
             icon: const Icon(Icons.arrow_drop_down),
@@ -202,9 +302,9 @@ class QuotationState extends State<Quotation> {
               });
             },
             validator: (value) {
-              return _validator('select', value, 'Unit', i);
+              return _validator('select', value, 'UNIT', i);
             },
-            items: <String>['Unit', 'Set', 'Pc']
+            items: <String>['UNIT', 'Set', 'Pc']
                 .map<DropdownMenuItem<String>>((String value) {
               return DropdownMenuItem<String>(
                 value: value,
@@ -215,11 +315,12 @@ class QuotationState extends State<Quotation> {
         ),
         Container(
           padding: formPadding,
-          width: MediaQuery.of(context).size.width * .36,
+          width: MediaQuery.of(context).size.width * .32,
           child: TextFormField(
+            controller: itemValueTECs[i],
             cursorColor: Colors.white,
             decoration:
-                InputDecoration(labelText: desc, focusedBorder: fieldBorder),
+                InputDecoration(labelText: item, focusedBorder: fieldBorder),
             validator: (value) {
               return _validator('text', value, '', i);
             },
@@ -229,6 +330,7 @@ class QuotationState extends State<Quotation> {
           padding: formPadding,
           width: MediaQuery.of(context).size.width * .17,
           child: TextFormField(
+            controller: unitPriceValueTECs[i],
             cursorColor: Colors.white,
             textAlign: TextAlign.right,
             decoration:
@@ -238,20 +340,16 @@ class QuotationState extends State<Quotation> {
               return _validator('text', value, '', i);
             },
             onChanged: (newValue) {
-              setState(() {
-                unitPriceValue = double.parse(newValue);
-                totalPriceValue = quantityValue * unitPriceValue;
-              });
+              _onChange();
             },
           ),
         ),
         Container(
             padding: formPadding,
-            width: MediaQuery.of(context).size.width * .17,
+            width: MediaQuery.of(context).size.width * .19,
             child: TextFormField(
               readOnly: true,
-              controller: TextEditingController(
-                  text: totalPriceValue.toStringAsFixed(2)),
+              controller: totalPriceValueTECs[i],
               textAlign: TextAlign.right,
               decoration:
                   InputDecoration(labelText: total, focusedBorder: fieldBorder),
@@ -265,6 +363,21 @@ class QuotationState extends State<Quotation> {
     final errCount = error.length.toDouble();
 
     _formHeight = (errCount * 110.0) + ((itemCount - errCount) * 80.0);
+  }
+
+  _onChange() {
+    for (int i = 0; i < items.length; i++) {
+      final qty = quantityValueTECs[i].text;
+      final price = unitPriceValueTECs[i].text;
+      var quantityValue = qty.isNotEmpty ? int.parse(qty) : 0;
+      var unitPriceValue = price.isNotEmpty ? double.parse(price) : 0.0;
+      var totalPriceValue = (quantityValue * unitPriceValue).toStringAsFixed(2);
+
+      totalPriceValue = totalPriceValue == '0.00' ? '-' : totalPriceValue;
+      totalPriceValueTECs[i] =
+          TextEditingController(text: '₱ $totalPriceValue');
+      items[i] = _createForm(i);
+    }
   }
 
   _validator(type, val, defaultVal, i) {

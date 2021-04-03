@@ -18,14 +18,14 @@ void main() => runApp(MaterialApp(
 class QuotationsState extends State<Quotations> with RouteAware {
   final _quotations = <QuotationsModel>[
     QuotationsModel(
-      'Music Box',
+      'Music Zone',
       '2021-03-08T17:44:00.000Z',
-      'Daruma Corporation',
+      'ABC Corporation',
     ),
     QuotationsModel(
       'QC Condo',
       '2021-03-08T17:44:00.000Z',
-      'Isay Ramos',
+      'Juan dela Cruz',
     ),
   ];
   GlobalKey _fabKey = GlobalKey();
@@ -175,22 +175,11 @@ class QuotationsState extends State<Quotations> with RouteAware {
     final swipedQuotation = _quotations[index];
 
     _quotations.removeAt(index);
+    showSnackBar(context, () {
+      final copiedQuotation = QuotationsModel.copy(swipedQuotation);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        action: SnackBarAction(
-          label: 'Undo',
-          onPressed: () {
-            final copiedEmail = QuotationsModel.copy(swipedQuotation);
-
-            setState(() => _quotations.insert(index, copiedEmail));
-          },
-          textColor: Colors.yellow,
-        ),
-        content: Text(deleted),
-        duration: Duration(seconds: 5),
-      ),
-    );
+      setState(() => _quotations.insert(index, copiedQuotation));
+    });
   }
 
   Future<bool> _promptUser(DismissDirection direction) async {

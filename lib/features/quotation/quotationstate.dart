@@ -1,30 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:quotationsgenerator/assets/translations/en.dart';
+import 'package:quotationsgenerator/helpers/constants.dart';
 import 'package:quotationsgenerator/helpers/utils.dart';
 import 'package:quotationsgenerator/styles/css.dart';
 import 'package:quotationsgenerator/features/quotation/quotation.dart';
 import 'package:quotationsgenerator/helpers/extensions.dart';
 
 class QuotationState extends State<Quotation> {
-  double _formHeight = 80.0;
-  final _formKey = GlobalKey<FormState>();
-  int index = 0;
-  List error = [];
+  List totalPriceTECs = [];
+  List unitTECs = [];
   List<TextEditingController> itemTECs = [];
   List<TextEditingController> legendTECs = [];
   List<TextEditingController> quantityTECs = [];
-  List<TextEditingController> totalPriceTECs = [];
   List<TextEditingController> unitPriceTECs = [];
-  List<Widget> items = <Widget>[];
-  String dropdown = 'UNIT';
+  List<Widget> _items = <Widget>[];
+  double _formHeight = defaultFormHeight;
+  String _grandTotalPrice = '0.00';
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  int _index = 0;
+  List _error = [];
+  List<String> _units = units;
+  String _date = convertDate(DateTime.now().toString());
 
   @override
   void initState() {
     super.initState();
     postInit(() {
       setState(() {
-        items.add(_createForm(0));
+        _items.add(_createForm());
       });
     });
   }
@@ -48,7 +52,9 @@ class QuotationState extends State<Quotation> {
                   // If the form is valid, display a snackbar. In the real world,
                   // you'd often call a server or save the information in a database.
                   ScaffoldMessenger.of(context)
-                      .showSnackBar(SnackBar(content: Text(sendingEmail)));
+                      .showSnackBar(SnackBar(content: Text(sendingEmail)))
+                      .closed
+                      .then((value) => Navigator.pop(context));
                 }
               },
             ),
@@ -65,8 +71,6 @@ class QuotationState extends State<Quotation> {
   }
 
   Widget _buildForm(BuildContext context) {
-    final date = convertDate(DateTime.now().toString());
-
     return Form(
       key: _formKey,
       child: Container(
@@ -83,7 +87,7 @@ class QuotationState extends State<Quotation> {
                     ),
                     keyboardType: TextInputType.emailAddress,
                     validator: (value) {
-                      return validator('email', value, '');
+                      return validator(value, min: 5, max: 100);
                     },
                   ),
                   padding: formPadding,
@@ -102,7 +106,7 @@ class QuotationState extends State<Quotation> {
                       labelText: subject,
                     ),
                     validator: (value) {
-                      return validator('text', value, '');
+                      return validator(value, min: 5, max: 100);
                     },
                   ),
                   padding: formPadding,
@@ -115,7 +119,7 @@ class QuotationState extends State<Quotation> {
               child: Row(children: <Widget>[
                 Container(
                   child: Text(
-                    'MLKJ Sash and Upholstery Furniture Shop\nAguinaldo Hi-way, Trece Martires Cavite 4109\nContact No.: +63 936 938 8505\nE-mail: theresa_manlutac@yahoo.com',
+                    templateHeader,
                     textAlign: TextAlign.center,
                   ),
                   padding: formPadding,
@@ -128,7 +132,7 @@ class QuotationState extends State<Quotation> {
               child: Row(children: <Widget>[
                 Container(
                   child: Text(
-                    'Date: $date',
+                    '$dateLabel $_date',
                     textAlign: TextAlign.right,
                   ),
                   padding: formPadding,
@@ -147,7 +151,7 @@ class QuotationState extends State<Quotation> {
                       labelText: location,
                     ),
                     validator: (value) {
-                      return validator('text', value, '');
+                      return validator(value, min: 5, max: 100);
                     },
                   ),
                   padding: formPadding,
@@ -163,9 +167,9 @@ class QuotationState extends State<Quotation> {
                     children: [
                       ListView.builder(
                         itemBuilder: (BuildContext context, int index) {
-                          return items[index];
+                          return _items[index];
                         },
-                        itemCount: items.length,
+                        itemCount: _items.length,
                         scrollDirection: Axis.vertical,
                         shrinkWrap: true,
                       )
@@ -183,9 +187,9 @@ class QuotationState extends State<Quotation> {
                   child: IconButton(
                       icon: Icon(Icons.add),
                       onPressed: () => setState(() {
-                            index += 1;
-                            _formHeight += 80.0;
-                            items.add(_createForm(index));
+                            _index += 1;
+                            _formHeight += defaultFormHeight;
+                            _items.add(_createForm(i: _index));
                           })),
                   decoration: BoxDecoration(
                     border: Border.all(width: 2, color: Colors.black26),
@@ -201,7 +205,7 @@ class QuotationState extends State<Quotation> {
               child: Row(children: <Widget>[
                 Container(
                   child: Text(
-                    'Total Price ₱\nOthers (Discount) \nGrand Total Price ',
+                    '$grandTotalPrice ₱ $_grandTotalPrice',
                     textAlign: TextAlign.right,
                   ),
                   padding: formPadding,
@@ -230,7 +234,7 @@ class QuotationState extends State<Quotation> {
               child: Row(children: <Widget>[
                 Container(
                   child: Text(
-                    'If you have any questions regarding the quotation, please feel free to contact us.\nTHANK YOU FOR YOUR BUSINESS!',
+                    templateFooter,
                     textAlign: TextAlign.center,
                   ),
                   padding: formPadding,
@@ -247,11 +251,12 @@ class QuotationState extends State<Quotation> {
     );
   }
 
-  Widget _createForm(i) {
+  Widget _createForm({i = 0}) {
+    double totalPriceController = 0.0;
+    String unitController = 'UNIT';
     TextEditingController itemController = TextEditingController();
     TextEditingController legendController = TextEditingController();
     TextEditingController quantityController = TextEditingController();
-    TextEditingController totalPriceController = TextEditingController();
     TextEditingController unitPriceController = TextEditingController();
 
     itemTECs.add(itemController);
@@ -259,6 +264,7 @@ class QuotationState extends State<Quotation> {
     quantityTECs.add(quantityController);
     totalPriceTECs.add(totalPriceController);
     unitPriceTECs.add(unitPriceController);
+    unitTECs.add(unitController);
 
     return Row(
       key: UniqueKey(),
@@ -271,6 +277,9 @@ class QuotationState extends State<Quotation> {
             ),
             controller: legendTECs[i],
             textAlign: TextAlign.right,
+            validator: (value) {
+              return _validator('legend', value, i, max: 5);
+            },
           ),
           padding: formPadding,
           width: MediaQuery.of(context).size.width * .14,
@@ -289,7 +298,7 @@ class QuotationState extends State<Quotation> {
             },
             textAlign: TextAlign.right,
             validator: (value) {
-              return _validator('text', value, '', i);
+              return _validator('qty', value, i, max: 3);
             },
           ),
           padding: formPadding,
@@ -300,8 +309,7 @@ class QuotationState extends State<Quotation> {
             elevation: 16,
             icon: const Icon(Icons.arrow_drop_down),
             iconSize: 24,
-            items: <String>['UNIT', 'Set', 'Pc']
-                .map<DropdownMenuItem<String>>((String value) {
+            items: _units.map<DropdownMenuItem<String>>((String value) {
               return DropdownMenuItem<String>(
                 child: Text(value),
                 value: value,
@@ -309,13 +317,13 @@ class QuotationState extends State<Quotation> {
             }).toList(),
             onChanged: (String? newValue) {
               setState(() {
-                dropdown = newValue!;
+                unitTECs[i] = newValue!;
               });
             },
             validator: (value) {
-              return _validator('select', value, 'UNIT', i);
+              return _validator('unit', value, i, defaultVal: 'UNIT');
             },
-            value: dropdown,
+            value: unitTECs[i],
           ),
           padding: boxing,
           width: MediaQuery.of(context).size.width * .11,
@@ -329,7 +337,7 @@ class QuotationState extends State<Quotation> {
               labelText: item,
             ),
             validator: (value) {
-              return _validator('text', value, '', i);
+              return _validator('item', value, i, min: 5, max: 100);
             },
           ),
           padding: formPadding,
@@ -349,7 +357,7 @@ class QuotationState extends State<Quotation> {
             },
             textAlign: TextAlign.right,
             validator: (value) {
-              return _validator('text', value, '', i);
+              return _validator('price', value, i, min: 3, max: 15);
             },
           ),
           padding: formPadding,
@@ -361,9 +369,13 @@ class QuotationState extends State<Quotation> {
               focusedBorder: fieldBorder,
               labelText: total,
             ),
-            controller: totalPriceTECs[i],
+            controller: TextEditingController(
+                text: totalPriceTECs[i].toStringAsFixed(2)),
             readOnly: true,
             textAlign: TextAlign.right,
+            validator: (value) {
+              return _validator('total', value, i, min: 3, max: 15);
+            },
           ),
           padding: formPadding,
           width: MediaQuery.of(context).size.width * .19,
@@ -373,38 +385,47 @@ class QuotationState extends State<Quotation> {
   }
 
   void _calculateFormHeight() {
-    final errCount = error.length.toDouble();
-    final itemCount = items.length.toDouble();
+    final errCount = _error.length.toDouble();
+    final itemCount = _items.length.toDouble();
 
     _formHeight = (errCount * 110.0) + ((itemCount - errCount) * 80.0);
   }
 
   _onChange() {
-    for (int i = 0; i < items.length; i++) {
+    for (int i = 0; i < _items.length; i++) {
       final price = unitPriceTECs[i].text;
       final qty = quantityTECs[i].text;
       var quantity = qty.isNotEmpty ? int.parse(qty) : 0;
       var unitPrice = price.isNotEmpty ? double.parse(price) : 0.0;
-      var totalPrice = (quantity * unitPrice).toStringAsFixed(2);
 
-      totalPrice = totalPrice == '0.00' ? '-' : totalPrice;
-      totalPriceTECs[i] = TextEditingController(text: '₱ $totalPrice');
-      items[i] = _createForm(i);
+      totalPriceTECs[i] = quantity * unitPrice;
+      _grandTotalPrice = totalPriceTECs
+          .reduce((value, element) => value + element)
+          .toStringAsFixed(2);
+      _items[i] = _createForm(i: i);
     }
   }
 
-  _validator(type, val, defaultVal, i) {
-    final message = validator(type, val, defaultVal);
+  _validator(field, val, i, {defaultVal = '', min = 0, max = 0}) {
+    final message = validator(val, defaultVal: defaultVal, min: min, max: max);
+    final obj = {
+      [field]: message == null
+    };
 
     setState(() {
       if (message == null) {
-        error.remove(i);
+        if (!obj.containsValue(false)) {
+          _error.remove(i);
+        }
       } else {
-        if (!error.contains(i)) {
-          error.add(i);
+        if (_error.asMap().containsKey(i)) {
+          _error[i].add(obj);
+        } else {
+          _error.add([obj]);
         }
       }
     });
+
     return message;
   }
 }

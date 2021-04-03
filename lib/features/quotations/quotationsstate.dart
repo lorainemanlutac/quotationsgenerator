@@ -33,6 +33,7 @@ class QuotationsState extends State<Quotations> with RouteAware {
   @override
   dispose() {
     super.dispose();
+
     routeObserver.unsubscribe(this);
   }
 
@@ -45,96 +46,53 @@ class QuotationsState extends State<Quotations> with RouteAware {
   }
 
   Widget _buildFAB(BuildContext context, {key}) => FloatingActionButton(
-        elevation: 0,
         backgroundColor: secondarySwatch,
+        child: addIcon,
+        elevation: 0,
         key: key,
         onPressed: () => _pushQuotationForm(context),
-        child: addIcon,
       );
 
   Widget _buildQuotations() {
     final length = _quotations.length;
 
     return ListView.builder(
-        padding: padding,
-        itemCount: length == 1 ? length : length * 2,
-        itemBuilder: (context, i) {
-          final index = i ~/ 2;
+      itemBuilder: (context, i) {
+        final index = i ~/ 2;
 
-          if (i.isOdd) {
-            return Divider();
-          }
+        if (i.isOdd) {
+          return Divider();
+        }
 
-          return Dismissible(
-            key: UniqueKey(),
-            background: Container(
-              color: Colors.red,
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              alignment: AlignmentDirectional.centerEnd,
-              child: Icon(
-                Icons.delete,
-                color: Colors.white,
-              ),
+        return Dismissible(
+          key: UniqueKey(),
+          background: Container(
+            alignment: AlignmentDirectional.centerEnd,
+            child: Icon(
+              Icons.delete,
+              color: Colors.white,
             ),
-            direction: DismissDirection.endToStart,
-            dismissThresholds: {DismissDirection.endToStart: 0.1},
-            onDismissed: (direction) {
-              return handleDismiss(direction, index);
-            },
-            child: _buildRow(_quotations[index]),
-            confirmDismiss: (direction) => promptUser(direction),
-          );
-        });
-  }
-
-  void handleDismiss(direction, index) {
-    final swipedQuotation = _quotations[index];
-
-    _quotations.removeAt(index);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Deleted. Do you want to undo?'),
-        duration: Duration(seconds: 5),
-        action: SnackBarAction(
-            label: 'Undo',
-            textColor: Colors.yellow,
-            onPressed: () {
-              final copiedEmail = QuotationsModel.copy(swipedQuotation);
-              setState(() => _quotations.insert(index, copiedEmail));
-            }),
-      ),
+            color: Colors.red,
+            padding: EdgeInsets.symmetric(horizontal: 20),
+          ),
+          child: _buildRow(_quotations[index]),
+          confirmDismiss: (direction) => _promptUser(direction),
+          direction: DismissDirection.endToStart,
+          dismissThresholds: {DismissDirection.endToStart: 0.1},
+          onDismissed: (direction) {
+            return _handleDismiss(direction, index);
+          },
+        );
+      },
+      itemCount: length == 1 ? length : length * 2,
+      padding: padding,
     );
   }
 
-  Future<bool> promptUser(DismissDirection direction) async {
-    return await showCupertinoDialog<bool>(
-          context: context,
-          builder: (context) => CupertinoAlertDialog(
-            content: Text('Are you sure you want to delete?'),
-            actions: <Widget>[
-              CupertinoDialogAction(
-                child: Text('Ok'),
-                onPressed: () {
-                  Navigator.of(context).pop(true);
-                },
-              ),
-              CupertinoDialogAction(
-                child: Text('Cancel'),
-                onPressed: () {
-                  return Navigator.of(context).pop(false);
-                },
-              )
-            ],
-          ),
-        ) ??
-        false;
-  }
-
   Widget _buildRow(quotation) {
-    final subject = quotation.subject;
     final dateTime = convertDateTime(quotation.timestamp);
     final location = quotation.location;
+    final subject = quotation.subject;
 
     return ListTile(
       leading: Icon(
@@ -142,44 +100,17 @@ class QuotationsState extends State<Quotations> with RouteAware {
         color: secondarySwatch,
         size: iconSize,
       ),
-      title: Text(subject),
-      subtitle: Text('$dateTime\n$location'),
       onTap: () {
         _pushQuotation(subject);
       },
+      subtitle: Text('$dateTime\n$location'),
+      title: Text(subject),
       trailing: Icon(
         Icons.arrow_right,
         color: secondarySwatch,
         size: iconSize,
       ),
     );
-  }
-
-  void _pushQuotation(String subject) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (BuildContext context) {
-          return Quotation(title: subject);
-        },
-      ),
-    );
-  }
-
-  void _pushQuotationForm(BuildContext context) {
-    final RenderBox fabRenderBox =
-        _fabKey.currentContext!.findRenderObject() as RenderBox;
-    final fabSize = fabRenderBox.size;
-    final fabOffset = fabRenderBox.localToGlobal(Offset.zero);
-
-    Navigator.of(context).push(PageRouteBuilder(
-      transitionDuration: duration,
-      pageBuilder: (BuildContext context, Animation<double> animation,
-              Animation<double> secondaryAnimation) =>
-          Quotation(title: formTitle),
-      transitionsBuilder: (BuildContext context, Animation<double> animation,
-              Animation<double> secondaryAnimation, Widget child) =>
-          _buildTransition(child, animation, fabSize, fabOffset),
-    ));
   }
 
   Widget _buildTransition(
@@ -212,24 +143,25 @@ class QuotationsState extends State<Quotations> with RouteAware {
       curve: Curves.easeOut,
     );
 
-    final radius = borderTween.evaluate(easeInAnimation);
     final offset = offsetTween.evaluate(animation);
+    final radius = borderTween.evaluate(easeInAnimation);
     final size = sizeTween.evaluate(easeInAnimation);
 
     final transitionFab = Opacity(
-      opacity: 1 - easeAnimation.value,
       child: _buildFAB(context),
+      opacity: 1 - easeAnimation.value,
     );
 
     Widget positionedClippedChild(Widget child) => Positioned(
-        width: size!.width,
-        height: size.height,
-        left: offset.dx,
-        top: offset.dy,
-        child: ClipRRect(
-          borderRadius: radius,
-          child: child,
-        ));
+          child: ClipRRect(
+            borderRadius: radius,
+            child: child,
+          ),
+          height: size!.height,
+          left: offset.dx,
+          top: offset.dy,
+          width: size.width,
+        );
 
     return Stack(
       children: [
@@ -237,5 +169,78 @@ class QuotationsState extends State<Quotations> with RouteAware {
         positionedClippedChild(transitionFab),
       ],
     );
+  }
+
+  void _handleDismiss(direction, index) {
+    final swipedQuotation = _quotations[index];
+
+    _quotations.removeAt(index);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () {
+            final copiedEmail = QuotationsModel.copy(swipedQuotation);
+
+            setState(() => _quotations.insert(index, copiedEmail));
+          },
+          textColor: Colors.yellow,
+        ),
+        content: Text(deleted),
+        duration: Duration(seconds: 5),
+      ),
+    );
+  }
+
+  Future<bool> _promptUser(DismissDirection direction) async {
+    return await showCupertinoDialog<bool>(
+          builder: (context) => CupertinoAlertDialog(
+            actions: <Widget>[
+              CupertinoDialogAction(
+                child: Text(ok),
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+              ),
+              CupertinoDialogAction(
+                child: Text(cancel),
+                onPressed: () {
+                  return Navigator.of(context).pop(false);
+                },
+              )
+            ],
+            content: Text(areYouSure),
+          ),
+          context: context,
+        ) ??
+        false;
+  }
+
+  void _pushQuotation(String subject) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) {
+          return Quotation(title: subject);
+        },
+      ),
+    );
+  }
+
+  void _pushQuotationForm(BuildContext context) {
+    final RenderBox fabRenderBox =
+        _fabKey.currentContext!.findRenderObject() as RenderBox;
+    final fabOffset = fabRenderBox.localToGlobal(Offset.zero);
+    final fabSize = fabRenderBox.size;
+
+    Navigator.of(context).push(PageRouteBuilder(
+      pageBuilder: (BuildContext context, Animation<double> animation,
+              Animation<double> secondaryAnimation) =>
+          Quotation(title: formTitle),
+      transitionsBuilder: (BuildContext context, Animation<double> animation,
+              Animation<double> secondaryAnimation, Widget child) =>
+          _buildTransition(child, animation, fabSize, fabOffset),
+      transitionDuration: duration,
+    ));
   }
 }

@@ -1,13 +1,16 @@
-import 'package:flutter/material.dart';
-
-final appTitle = Text('MLKJ Sash and Upholstery Furniture Shop');
+final appTitle = 'MLKJ Sash and Upholstery Furniture Shop';
+final areYouSure = 'Are you sure you want to delete?';
+final cancel = 'Cancel';
+final deleted = 'Deleted. Do you want to undo?';
 final formTitle = 'Quotation';
-final to = 'To';
-final subject = 'Subject';
-final no = 'NO';
-final qty = 'QTY';
 final item = 'ITEM';
-final price = 'PRICE';
-final total = 'TOTAL PRICE';
+final legend = 'LEGEND';
 final location = 'Location';
 final note = 'Note:';
+final ok = 'Ok';
+final price = 'PRICE';
+final qty = 'QTY';
+final sendingEmail = 'Sending email...';
+final subject = 'Subject';
+final to = 'To';
+final total = 'TOTAL PRICE';

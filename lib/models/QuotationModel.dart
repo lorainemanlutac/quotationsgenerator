@@ -1,12 +1,12 @@
 class QuotationModel {
-  final int quantityValue;
-  final double unitPriceValue;
-  final double totalPriceValue;
+  final int quantity;
+  final double unitPrice;
+  final double totalPrice;
 
-  QuotationModel(this.quantityValue, this.unitPriceValue, this.totalPriceValue);
+  QuotationModel(this.quantity, this.unitPrice, this.totalPrice);
 
   QuotationModel.copy(QuotationModel other)
-      : this.quantityValue = other.quantityValue,
-        this.unitPriceValue = other.unitPriceValue,
-        this.totalPriceValue = other.totalPriceValue;
+      : this.quantity = other.quantity,
+        this.unitPrice = other.unitPrice,
+        this.totalPrice = other.totalPrice;
 }

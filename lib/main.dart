@@ -9,15 +9,15 @@ class QuotationsGenerator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text(appTitle),
+        ),
+        body: Quotations(),
+      ),
       theme: ThemeData(
         primarySwatch: primarySwatch,
         textTheme: textTheme,
-      ),
-      home: Scaffold(
-        appBar: AppBar(
-          title: appTitle,
-        ),
-        body: Quotations(),
       ),
     );
   }

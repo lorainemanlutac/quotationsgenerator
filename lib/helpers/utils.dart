@@ -16,8 +16,9 @@ var convertDateTime = (timestamp) {
 
 // ignore: top_level_function_literal_block
 var validator = (type, val, defaultVal) {
-  if (val == null || val == defaultVal) {
+  if (val == defaultVal || val == null) {
     return 'Required';
   }
+
   return null;
 };

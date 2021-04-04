@@ -1,3 +1,4 @@
+/// Translations
 final appTitle = 'MLKJ Sash and Upholstery Furniture Shop';
 final areYouSure = 'Are you sure you want to delete?';
 final cancel = 'Cancel';
@@ -13,7 +14,7 @@ final ok = 'Ok';
 final price = 'PRICE';
 final qty = 'QTY';
 final sendingEmail = 'Sending email...';
-final subject = 'Subject';
+final project = 'Project';
 final templateFooter =
     'If you have any questions regarding the quotation, please feel free to contact us.\nTHANK YOU FOR YOUR BUSINESS!';
 final templateHeader =

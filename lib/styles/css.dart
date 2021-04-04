@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Common styles.
 final addIcon = const Icon(Icons.add);
 final biggerFont = TextStyle(fontSize: 18.0);
 final boxing = EdgeInsets.only(top: 24.0, right: 8.0, bottom: 8.0, left: 8.0);

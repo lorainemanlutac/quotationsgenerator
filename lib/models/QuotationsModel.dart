@@ -1,12 +1,12 @@
 class QuotationsModel {
-  final String subject;
+  final String project;
   final String timestamp;
   final String location;
 
-  QuotationsModel(this.subject, this.timestamp, this.location);
+  QuotationsModel(this.project, this.timestamp, this.location);
 
   QuotationsModel.copy(QuotationsModel other)
-      : this.subject = other.subject,
+      : this.project = other.project,
         this.timestamp = other.timestamp,
         this.location = other.location;
 }

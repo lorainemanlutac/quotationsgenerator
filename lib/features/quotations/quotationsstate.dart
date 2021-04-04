@@ -7,8 +7,8 @@ import 'package:quotationsgenerator/styles/css.dart';
 import 'package:quotationsgenerator/features/quotation/quotation.dart';
 import 'package:quotationsgenerator/features/quotations/quotations.dart';
 
-final routeObserver = RouteObserver<PageRoute>();
-final duration = const Duration(milliseconds: 300);
+RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+Duration duration = const Duration(milliseconds: 300);
 
 void main() => runApp(MaterialApp(
       home: Quotations(),
@@ -16,7 +16,7 @@ void main() => runApp(MaterialApp(
     ));
 
 class QuotationsState extends State<Quotations> with RouteAware {
-  final _quotations = <QuotationsModel>[
+  List<QuotationsModel> _quotations = <QuotationsModel>[
     QuotationsModel(
       'Music Zone',
       '2021-03-08T17:44:00.000Z',
@@ -45,6 +45,7 @@ class QuotationsState extends State<Quotations> with RouteAware {
     );
   }
 
+  /// The floating add button at the lower right corner of the home page.
   Widget _buildFAB(BuildContext context, {key}) => FloatingActionButton(
         backgroundColor: secondarySwatch,
         child: addIcon,
@@ -53,12 +54,13 @@ class QuotationsState extends State<Quotations> with RouteAware {
         onPressed: () => _pushQuotationForm(context),
       );
 
+  /// Returns the list of quotations that are saved in the application.
   Widget _buildQuotations() {
-    final length = _quotations.length;
+    int length = _quotations.length;
 
     return ListView.builder(
       itemBuilder: (context, i) {
-        final index = i ~/ 2;
+        int index = i ~/ 2;
 
         if (i.isOdd) {
           return Divider();
@@ -89,10 +91,10 @@ class QuotationsState extends State<Quotations> with RouteAware {
     );
   }
 
+  /// Returns the tappable [quotation] details.
   Widget _buildRow(quotation) {
-    final dateTime = convertDateTime(quotation.timestamp);
-    final location = quotation.location;
-    final subject = quotation.subject;
+    String dateTime = convertDateTime(quotation.timestamp);
+    String location = quotation.location;
 
     return ListTile(
       leading: Icon(
@@ -101,10 +103,10 @@ class QuotationsState extends State<Quotations> with RouteAware {
         size: iconSize,
       ),
       onTap: () {
-        _pushQuotation(subject);
+        _pushQuotation(project);
       },
       subtitle: Text('$dateTime\n$location'),
-      title: Text(subject),
+      title: Text(quotation.project),
       trailing: Icon(
         Icons.arrow_right,
         color: secondarySwatch,
@@ -113,6 +115,7 @@ class QuotationsState extends State<Quotations> with RouteAware {
     );
   }
 
+  /// Adds animation upon opening the create form page.
   Widget _buildTransition(
     Widget page,
     Animation<double> animation,
@@ -121,33 +124,30 @@ class QuotationsState extends State<Quotations> with RouteAware {
   ) {
     if (animation.value == 1) return page;
 
-    final borderTween = BorderRadiusTween(
+    BorderRadiusTween borderTween = BorderRadiusTween(
       begin: BorderRadius.circular(fabSize!.width / 2),
       end: BorderRadius.circular(0.0),
     );
-    final sizeTween = SizeTween(
-      begin: fabSize,
-      end: MediaQuery.of(context).size,
-    );
-    final offsetTween = Tween<Offset>(
-      begin: fabOffset,
-      end: Offset.zero,
-    );
-
-    final easeInAnimation = CurvedAnimation(
-      parent: animation,
-      curve: Curves.easeIn,
-    );
-    final easeAnimation = CurvedAnimation(
+    CurvedAnimation easeAnimation = CurvedAnimation(
       parent: animation,
       curve: Curves.easeOut,
     );
-
-    final offset = offsetTween.evaluate(animation);
-    final radius = borderTween.evaluate(easeInAnimation);
-    final size = sizeTween.evaluate(easeInAnimation);
-
-    final transitionFab = Opacity(
+    CurvedAnimation easeInAnimation = CurvedAnimation(
+      parent: animation,
+      curve: Curves.easeIn,
+    );
+    Tween<Offset> offsetTween = Tween<Offset>(
+      begin: fabOffset,
+      end: Offset.zero,
+    );
+    Offset offset = offsetTween.evaluate(animation);
+    BorderRadius radius = borderTween.evaluate(easeInAnimation);
+    SizeTween sizeTween = SizeTween(
+      begin: fabSize,
+      end: MediaQuery.of(context).size,
+    );
+    Size? size = sizeTween.evaluate(easeInAnimation);
+    Opacity transitionFab = Opacity(
       child: _buildFAB(context),
       opacity: 1 - easeAnimation.value,
     );
@@ -171,17 +171,19 @@ class QuotationsState extends State<Quotations> with RouteAware {
     );
   }
 
+  /// Triggered when a quotation item swipe [direction] is left.
   void _handleDismiss(direction, index) {
-    final swipedQuotation = _quotations[index];
+    QuotationsModel swipedQuotation = _quotations[index];
 
     _quotations.removeAt(index);
     showSnackBar(context, () {
-      final copiedQuotation = QuotationsModel.copy(swipedQuotation);
+      QuotationsModel copiedQuotation = QuotationsModel.copy(swipedQuotation);
 
       setState(() => _quotations.insert(index, copiedQuotation));
     });
   }
 
+  /// Asks user to confirm removal of swiped quotation item.
   Future<bool> _promptUser(DismissDirection direction) async {
     return await showCupertinoDialog<bool>(
           builder: (context) => CupertinoAlertDialog(
@@ -206,21 +208,23 @@ class QuotationsState extends State<Quotations> with RouteAware {
         false;
   }
 
-  void _pushQuotation(String subject) {
+  /// Shows the quotation details with [project] as page title.
+  void _pushQuotation(String project) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
-          return Quotation(title: subject);
+          return Quotation(title: project);
         },
       ),
     );
   }
 
+  /// Shows the create quotation form page in the current page [context].
   void _pushQuotationForm(BuildContext context) {
-    final RenderBox fabRenderBox =
+    RenderBox fabRenderBox =
         _fabKey.currentContext!.findRenderObject() as RenderBox;
-    final fabOffset = fabRenderBox.localToGlobal(Offset.zero);
-    final fabSize = fabRenderBox.size;
+    Offset fabOffset = fabRenderBox.localToGlobal(Offset.zero);
+    Size fabSize = fabRenderBox.size;
 
     Navigator.of(context).push(PageRouteBuilder(
       pageBuilder: (BuildContext context, Animation<double> animation,

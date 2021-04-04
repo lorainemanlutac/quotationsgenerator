@@ -1,5 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:quotationsgenerator/assets/translations/en.dart';
 import 'package:quotationsgenerator/helpers/constants.dart';
 import 'package:quotationsgenerator/helpers/utils.dart';
@@ -8,6 +13,7 @@ import 'package:quotationsgenerator/features/quotation/quotation.dart';
 import 'package:quotationsgenerator/helpers/extensions.dart';
 
 class QuotationState extends State<Quotation> {
+  final pdf = pw.Document();
   List totalPriceTECs = [];
   List unitTECs = [];
   List<TextEditingController> itemTECs = [];
@@ -22,10 +28,14 @@ class QuotationState extends State<Quotation> {
   List _error = [];
   List<String> _units = units;
   String _date = convertDate(DateTime.now().toString());
+  TextEditingController _locationController = TextEditingController();
+  TextEditingController _projectController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+
+    /// Sets state after load.
     postInit(() {
       setState(() {
         _items.add(_createForm());
@@ -45,16 +55,16 @@ class QuotationState extends State<Quotation> {
                 size: 26.0,
               ),
               onTap: () {
-                final valid = _formKey.currentState!.validate();
+                bool valid = _formKey.currentState!.validate();
 
                 _calculateFormHeight();
                 if (valid) {
-                  // If the form is valid, display a snackbar. In the real world,
-                  // you'd often call a server or save the information in a database.
                   ScaffoldMessenger.of(context)
                       .showSnackBar(SnackBar(content: Text(sendingEmail)))
                       .closed
                       .then((value) => Navigator.pop(context));
+
+                  _generatePDF();
                 }
               },
             ),
@@ -70,6 +80,7 @@ class QuotationState extends State<Quotation> {
     );
   }
 
+  /// Builds the whole form in the current [context].
   Widget _buildForm(BuildContext context) {
     return Form(
       key: _formKey,
@@ -100,10 +111,11 @@ class QuotationState extends State<Quotation> {
               child: Row(children: <Widget>[
                 Container(
                   child: TextFormField(
+                    controller: _projectController,
                     cursorColor: Colors.white,
                     decoration: InputDecoration(
                       focusedBorder: fieldBorder,
-                      labelText: subject,
+                      labelText: project,
                     ),
                     validator: (value) {
                       return validator(value, min: 5, max: 100);
@@ -145,6 +157,7 @@ class QuotationState extends State<Quotation> {
               child: Row(children: <Widget>[
                 Container(
                   child: TextFormField(
+                    controller: _locationController,
                     cursorColor: Colors.white,
                     decoration: InputDecoration(
                       focusedBorder: fieldBorder,
@@ -251,6 +264,7 @@ class QuotationState extends State<Quotation> {
     );
   }
 
+  /// Returns the additional set of fields for the form.
   Widget _createForm({i = 0}) {
     double totalPriceController = 0.0;
     String unitController = 'UNIT';
@@ -259,6 +273,7 @@ class QuotationState extends State<Quotation> {
     TextEditingController quantityController = TextEditingController();
     TextEditingController unitPriceController = TextEditingController();
 
+    /// Add controllers to avoid overwriting values.
     itemTECs.add(itemController);
     legendTECs.add(legendController);
     quantityTECs.add(quantityController);
@@ -384,19 +399,49 @@ class QuotationState extends State<Quotation> {
     );
   }
 
+  /// Sets the form height based on how many sets of fields are there.
   void _calculateFormHeight() {
-    final errCount = _error.length.toDouble();
-    final itemCount = _items.length.toDouble();
+    double errCount = _error.length.toDouble();
+    double itemCount = _items.length.toDouble();
 
     _formHeight = (errCount * 110.0) + ((itemCount - errCount) * 80.0);
   }
 
+  /// Generates the PDF file from form values.
+  _generatePDF() {
+    String projectVal = _projectController.text;
+    String locationVal = _locationController.text;
+
+    pdf.addPage(pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) {
+          return pw.Column(
+            children: [
+              pw.Row(children: [pw.Center(child: pw.Text(templateHeader))]),
+              pw.Row(children: [
+                pw.Text('$dateLabel $_date', textAlign: pw.TextAlign.right)
+              ]),
+              pw.Row(children: [
+                pw.Text('$project: $projectVal\n$location: $locationVal',
+                    textAlign: pw.TextAlign.right)
+              ]),
+              pw.Row(children: [
+                pw.Table(children: [pw.TableRow(children: [])])
+              ]),
+            ],
+          );
+        }));
+
+    _savePDF();
+  }
+
+  /// Computes the total prices.
   _onChange() {
     for (int i = 0; i < _items.length; i++) {
-      final price = unitPriceTECs[i].text;
-      final qty = quantityTECs[i].text;
-      var quantity = qty.isNotEmpty ? int.parse(qty) : 0;
-      var unitPrice = price.isNotEmpty ? double.parse(price) : 0.0;
+      String price = unitPriceTECs[i].text;
+      String qty = quantityTECs[i].text;
+      int quantity = qty.isNotEmpty ? int.parse(qty) : 0;
+      double unitPrice = price.isNotEmpty ? double.parse(price) : 0.0;
 
       totalPriceTECs[i] = quantity * unitPrice;
       _grandTotalPrice = totalPriceTECs
@@ -406,13 +451,25 @@ class QuotationState extends State<Quotation> {
     }
   }
 
+  /// Writes the PDF file into the device.
+  _savePDF() async {
+    final output = await getTemporaryDirectory();
+
+    File file = File('${output.path}/${_projectController.text}.pdf');
+    await file.writeAsBytes(await pdf.save());
+  }
+
+  /// Validates the form and determines how many sets of fields has error in it.
   _validator(field, val, i, {defaultVal = '', min = 0, max = 0}) {
-    final message = validator(val, defaultVal: defaultVal, min: min, max: max);
+    String message =
+        validator(val, defaultVal: defaultVal, min: min, max: max)!;
     final obj = {
+      // ignore: unnecessary_null_comparison
       [field]: message == null
     };
 
     setState(() {
+      // ignore: unnecessary_null_comparison
       if (message == null) {
         if (!obj.containsValue(false)) {
           _error.remove(i);

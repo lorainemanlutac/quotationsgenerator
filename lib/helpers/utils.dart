@@ -3,21 +3,21 @@ import 'package:intl/intl.dart';
 import 'package:quotationsgenerator/assets/translations/en.dart';
 
 // ignore: top_level_function_literal_block
-var convertDate = (timestamp) {
-  final parsedDateTime = DateTime.parse(timestamp).toLocal();
+Function convertDate = (timestamp) {
+  DateTime parsedDateTime = DateTime.parse(timestamp).toLocal();
 
   return DateFormat.yMMMd().format(parsedDateTime);
 };
 
 // ignore: top_level_function_literal_block
-var convertDateTime = (timestamp) {
-  final parsedDateTime = DateTime.parse(timestamp).toLocal();
+Function convertDateTime = (timestamp) {
+  DateTime parsedDateTime = DateTime.parse(timestamp).toLocal();
 
   return convertDate(timestamp) + ' ' + DateFormat.jm().format(parsedDateTime);
 };
 
 // ignore: top_level_function_literal_block
-var showSnackBar = (context, onPressed) {
+Function showSnackBar = (context, onPressed) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       action: SnackBarAction(
@@ -32,7 +32,7 @@ var showSnackBar = (context, onPressed) {
 };
 
 // ignore: top_level_function_literal_block
-var validator = (val, {defaultVal = '', min = 0, max = 0}) {
+Function validator = (val, {defaultVal = '', min = 0, max = 0}) {
   if (val == defaultVal || val == null || val == '0.00') {
     return 'Required';
   }

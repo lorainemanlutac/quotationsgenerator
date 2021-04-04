@@ -10,11 +10,14 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:quotationsgenerator/assets/translations/en.dart';
 import 'package:quotationsgenerator/helpers/constants.dart';
 import 'package:quotationsgenerator/helpers/utils.dart';
+import 'package:quotationsgenerator/models/QuotationModel.dart';
+import 'package:quotationsgenerator/models/QuotationsModelBloc.dart';
 import 'package:quotationsgenerator/styles/css.dart';
 import 'package:quotationsgenerator/features/quotation/quotation.dart';
 import 'package:quotationsgenerator/helpers/extensions.dart';
 
 class QuotationState extends State<Quotation> {
+  final bloc = QuotationsModelBloc();
   final pdf = pw.Document();
   List totalPriceTECs = [];
   List unitTECs = [];
@@ -29,6 +32,7 @@ class QuotationState extends State<Quotation> {
   int _index = 0;
   List _error = [];
   List<String> _units = units;
+  List<List<String>> _rows = <List<String>>[];
   String _date = '$dateLabel ${convertDate(DateTime.now().toString())}';
   String _path = '';
   String _projectVal = '';
@@ -66,6 +70,7 @@ class QuotationState extends State<Quotation> {
                 _calculateFormHeight();
                 if (valid) {
                   _generatePDF();
+                  _save();
                 }
               },
             ),
@@ -269,8 +274,6 @@ class QuotationState extends State<Quotation> {
 
   /// Returns the String [_rows] list containing the items and its particulars.
   _buildItems() {
-    List<List<String>> _rows = <List<String>>[];
-
     _rows.add(<String>[legend, qty, 'UNIT', item, price, total]);
 
     for (var indice = 0; indice < _index + 1; indice++) {
@@ -485,6 +488,22 @@ class QuotationState extends State<Quotation> {
           '$grandTotalPrice PHP ${totalPriceTECs.reduce((value, element) => value + element).toStringAsFixed(2)}';
       _items[i] = _createForm(i: i);
     }
+  }
+
+  /// Writes to the database table.
+  _save() async {
+    List<List<String>> rows = _rows.removeAt(0).cast<List<String>>();
+
+    await bloc.add(QuotationModel(
+      id: 0,
+      emailAddress: _email.text,
+      project: _projectVal,
+      location: _locationController.text,
+      particulars: toJson(rows),
+      note: _noteController.text,
+      createdDate: _date,
+      changedDate: _date,
+    ));
   }
 
   /// Writes the PDF file into the device.

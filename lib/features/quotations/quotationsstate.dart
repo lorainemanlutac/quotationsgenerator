@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:quotationsgenerator/assets/translations/en.dart';
 import 'package:quotationsgenerator/helpers/utils.dart';
-import 'package:quotationsgenerator/models/QuotationsModel.dart';
+import 'package:quotationsgenerator/models/QuotationModel.dart';
 import 'package:quotationsgenerator/styles/css.dart';
 import 'package:quotationsgenerator/features/quotation/quotation.dart';
 import 'package:quotationsgenerator/features/quotations/quotations.dart';
@@ -16,16 +16,28 @@ void main() => runApp(MaterialApp(
     ));
 
 class QuotationsState extends State<Quotations> with RouteAware {
-  List<QuotationsModel> _quotations = <QuotationsModel>[
-    QuotationsModel(
-      'Music Zone',
-      '2021-03-08T17:44:00.000Z',
-      'ABC Corporation',
+  List<QuotationModel> _quotations = <QuotationModel>[
+    QuotationModel(
+      id: 1,
+      emailAddress: 'a@a.com',
+      project: 'Music Zone',
+      location: 'ABC Corporation',
+      particulars:
+          '[{\'legend\': \'WD 1\', \'quantity\': 1, \'unit\': \'SET\/S\', \'item\': \'Flush Door with panel jamb and vinyl windows\', \'unitPrice\': 1500.00}]',
+      note: '',
+      createdDate: '2021-03-08T17:44:00.000Z',
+      changedDate: '2021-03-08T17:44:00.000Z',
     ),
-    QuotationsModel(
-      'QC Condo',
-      '2021-03-08T17:44:00.000Z',
-      'Juan dela Cruz',
+    QuotationModel(
+      id: 2,
+      emailAddress: 'test@test.com',
+      project: 'QC Condo',
+      location: 'Juan dela Cruz',
+      particulars:
+          '[{\'legend\': \'WD 1\', \'quantity\': 1, \'unit\': \'SET\/S\', \'item\': \'Flush Door with panel jamb and vinyl windows\', \'unitPrice\': 1500.00}, {\'legend\': \'WD 2\', \'quantity\': 3, \'unit\': \'SET\/S\', \'item\': \'Flush Door with panel jamb and vinyl windows\', \'unitPrice\': 1500.00}]',
+      note: '',
+      createdDate: '2021-03-08T17:44:00.000Z',
+      changedDate: '2021-03-08T17:44:00.000Z',
     ),
   ];
   GlobalKey _fabKey = GlobalKey();
@@ -93,7 +105,7 @@ class QuotationsState extends State<Quotations> with RouteAware {
 
   /// Returns the tappable [quotation] details.
   Widget _buildRow(quotation) {
-    String dateTime = convertDateTime(quotation.timestamp);
+    String dateTime = convertDateTime(quotation.changedDate);
     String location = quotation.location;
 
     return ListTile(
@@ -173,13 +185,13 @@ class QuotationsState extends State<Quotations> with RouteAware {
 
   /// Triggered when a quotation item swipe [direction] is left.
   void _handleDismiss(direction, index) {
-    QuotationsModel swipedQuotation = _quotations[index];
+    // QuotationModel swipedQuotation = _quotations[index];
 
     _quotations.removeAt(index);
     showSnackBar(context, () {
-      QuotationsModel copiedQuotation = QuotationsModel.copy(swipedQuotation);
+      // QuotationModel copiedQuotation = QuotationModel.copy(swipedQuotation);
 
-      setState(() => _quotations.insert(index, copiedQuotation));
+      // setState(() => _quotations.insert(index, copiedQuotation));
     });
   }
 

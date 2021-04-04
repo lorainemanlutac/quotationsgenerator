@@ -3,17 +3,17 @@ import 'package:intl/intl.dart';
 import 'package:quotationsgenerator/assets/translations/en.dart';
 
 // ignore: top_level_function_literal_block
-Function convertDate = (timestamp) {
-  DateTime parsedDateTime = DateTime.parse(timestamp).toLocal();
+Function convertDate = (createdDate) {
+  DateTime parsedDateTime = DateTime.parse(createdDate).toLocal();
 
   return DateFormat.yMMMd().format(parsedDateTime);
 };
 
 // ignore: top_level_function_literal_block
-Function convertDateTime = (timestamp) {
-  DateTime parsedDateTime = DateTime.parse(timestamp).toLocal();
+Function convertDateTime = (createdDate) {
+  DateTime parsedDateTime = DateTime.parse(createdDate).toLocal();
 
-  return '${convertDate(timestamp)} ${DateFormat.jm().format(parsedDateTime)}';
+  return '${convertDate(createdDate)} ${DateFormat.jm().format(parsedDateTime)}';
 };
 
 // ignore: top_level_function_literal_block

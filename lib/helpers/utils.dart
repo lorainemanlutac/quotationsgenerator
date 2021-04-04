@@ -13,7 +13,7 @@ Function convertDate = (timestamp) {
 Function convertDateTime = (timestamp) {
   DateTime parsedDateTime = DateTime.parse(timestamp).toLocal();
 
-  return convertDate(timestamp) + ' ' + DateFormat.jm().format(parsedDateTime);
+  return '${convertDate(timestamp)} ${DateFormat.jm().format(parsedDateTime)}';
 };
 
 // ignore: top_level_function_literal_block

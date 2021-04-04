@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -22,13 +24,17 @@ class QuotationState extends State<Quotation> {
   List<TextEditingController> unitPriceTECs = [];
   List<Widget> _items = <Widget>[];
   double _formHeight = defaultFormHeight;
-  String _grandTotalPrice = '0.00';
+  String _grandTotalPrice = 'PHP 0.00';
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   int _index = 0;
   List _error = [];
   List<String> _units = units;
-  String _date = convertDate(DateTime.now().toString());
+  String _date = '$dateLabel ${convertDate(DateTime.now().toString())}';
+  String _path = '';
+  String _projectVal = '';
+  TextEditingController _email = TextEditingController();
   TextEditingController _locationController = TextEditingController();
+  TextEditingController _noteController = TextEditingController();
   TextEditingController _projectController = TextEditingController();
 
   @override
@@ -59,11 +65,6 @@ class QuotationState extends State<Quotation> {
 
                 _calculateFormHeight();
                 if (valid) {
-                  ScaffoldMessenger.of(context)
-                      .showSnackBar(SnackBar(content: Text(sendingEmail)))
-                      .closed
-                      .then((value) => Navigator.pop(context));
-
                   _generatePDF();
                 }
               },
@@ -91,6 +92,7 @@ class QuotationState extends State<Quotation> {
               child: Row(children: <Widget>[
                 Container(
                   child: TextFormField(
+                    controller: _email,
                     cursorColor: Colors.white,
                     decoration: InputDecoration(
                       focusedBorder: fieldBorder,
@@ -131,7 +133,7 @@ class QuotationState extends State<Quotation> {
               child: Row(children: <Widget>[
                 Container(
                   child: Text(
-                    templateHeader,
+                    '$appTitle\n$templateHeader',
                     textAlign: TextAlign.center,
                   ),
                   padding: formPadding,
@@ -144,7 +146,7 @@ class QuotationState extends State<Quotation> {
               child: Row(children: <Widget>[
                 Container(
                   child: Text(
-                    '$dateLabel $_date',
+                    _date,
                     textAlign: TextAlign.right,
                   ),
                   padding: formPadding,
@@ -218,7 +220,7 @@ class QuotationState extends State<Quotation> {
               child: Row(children: <Widget>[
                 Container(
                   child: Text(
-                    '$grandTotalPrice ₱ $_grandTotalPrice',
+                    _grandTotalPrice,
                     textAlign: TextAlign.right,
                   ),
                   padding: formPadding,
@@ -231,6 +233,7 @@ class QuotationState extends State<Quotation> {
               child: Row(children: <Widget>[
                 Container(
                   child: TextFormField(
+                    controller: _noteController,
                     cursorColor: Colors.white,
                     decoration: InputDecoration(
                       focusedBorder: fieldBorder,
@@ -262,6 +265,36 @@ class QuotationState extends State<Quotation> {
         width: MediaQuery.of(context).size.width,
       ),
     );
+  }
+
+  /// Returns the String [_rows] list containing the items and its particulars.
+  _buildItems() {
+    List<List<String>> _rows = <List<String>>[];
+
+    _rows.add(<String>[legend, qty, 'UNIT', item, price, total]);
+
+    for (var indice = 0; indice < _index + 1; indice++) {
+      List<String> row = <String>[
+        legendTECs[indice].text,
+        quantityTECs[indice].text,
+        unitTECs[indice],
+        itemTECs[indice].text,
+        'PHP ${unitPriceTECs[indice].text}',
+        'PHP ${totalPriceTECs[indice].toStringAsFixed(2)}',
+      ];
+
+      _rows.add(row);
+    }
+
+    return _rows;
+  }
+
+  /// Sets the form height based on how many sets of fields are there.
+  void _calculateFormHeight() {
+    double errCount = _error.length.toDouble();
+    double itemCount = _items.length.toDouble();
+
+    _formHeight = (errCount * 110.0) + ((itemCount - errCount) * 80.0);
   }
 
   /// Returns the additional set of fields for the form.
@@ -335,6 +368,9 @@ class QuotationState extends State<Quotation> {
                 unitTECs[i] = newValue!;
               });
             },
+            onTap: () {
+              FocusScope.of(context).unfocus();
+            },
             validator: (value) {
               return _validator('unit', value, i, defaultVal: 'UNIT');
             },
@@ -399,38 +435,39 @@ class QuotationState extends State<Quotation> {
     );
   }
 
-  /// Sets the form height based on how many sets of fields are there.
-  void _calculateFormHeight() {
-    double errCount = _error.length.toDouble();
-    double itemCount = _items.length.toDouble();
-
-    _formHeight = (errCount * 110.0) + ((itemCount - errCount) * 80.0);
-  }
-
   /// Generates the PDF file from form values.
-  _generatePDF() {
-    String projectVal = _projectController.text;
+  _generatePDF() async {
     String locationVal = _locationController.text;
+    String noteVal = _noteController.text;
 
-    pdf.addPage(pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        build: (pw.Context context) {
-          return pw.Column(
-            children: [
-              pw.Row(children: [pw.Center(child: pw.Text(templateHeader))]),
-              pw.Row(children: [
-                pw.Text('$dateLabel $_date', textAlign: pw.TextAlign.right)
-              ]),
-              pw.Row(children: [
-                pw.Text('$project: $projectVal\n$location: $locationVal',
-                    textAlign: pw.TextAlign.right)
-              ]),
-              pw.Row(children: [
-                pw.Table(children: [pw.TableRow(children: [])])
-              ]),
-            ],
-          );
-        }));
+    _projectVal = _projectController.text;
+
+    pdf.addPage(pw.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      build: (pw.Context context) => <pw.Widget>[
+        pw.Header(
+            level: 0,
+            child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: <pw.Widget>[
+                  pw.Text(appTitle),
+                ])),
+        pw.Text(templateHeader),
+        pw.SizedBox(height: 40),
+        pw.Text(_date),
+        pw.SizedBox(height: 20),
+        pw.Text('$project: $_projectVal\n$location: $locationVal'),
+        pw.SizedBox(height: 20),
+        pw.Table.fromTextArray(context: context, data: _buildItems()),
+        pw.SizedBox(height: 20),
+        pw.Text(_grandTotalPrice),
+        pw.SizedBox(height: 20),
+        pw.Text('$note $noteVal'),
+        pw.SizedBox(height: 48),
+        pw.Text(templateFooter, textAlign: pw.TextAlign.center)
+      ],
+    ));
 
     _savePDF();
   }
@@ -444,9 +481,8 @@ class QuotationState extends State<Quotation> {
       double unitPrice = price.isNotEmpty ? double.parse(price) : 0.0;
 
       totalPriceTECs[i] = quantity * unitPrice;
-      _grandTotalPrice = totalPriceTECs
-          .reduce((value, element) => value + element)
-          .toStringAsFixed(2);
+      _grandTotalPrice =
+          '$grandTotalPrice PHP ${totalPriceTECs.reduce((value, element) => value + element).toStringAsFixed(2)}';
       _items[i] = _createForm(i: i);
     }
   }
@@ -454,15 +490,29 @@ class QuotationState extends State<Quotation> {
   /// Writes the PDF file into the device.
   _savePDF() async {
     final output = await getTemporaryDirectory();
+    _path = '${output.path}/$_projectVal.pdf';
 
-    File file = File('${output.path}/${_projectController.text}.pdf');
-    await file.writeAsBytes(await pdf.save());
+    File file = File(_path);
+    await file.writeAsBytes(await pdf.save()).then((value) => _sendEmail());
+  }
+
+  /// Sends the form content.
+  _sendEmail() async {
+    final Email email = Email(
+      body: emailBody,
+      subject: '$subject ${_projectController.text}',
+      recipients: [_email.text],
+      attachmentPaths: [_path],
+      isHTML: false,
+    );
+
+    await FlutterEmailSender.send(email)
+        .then((value) => Navigator.pop(context));
   }
 
   /// Validates the form and determines how many sets of fields has error in it.
   _validator(field, val, i, {defaultVal = '', min = 0, max = 0}) {
-    String message =
-        validator(val, defaultVal: defaultVal, min: min, max: max)!;
+    final message = validator(val, defaultVal: defaultVal, min: min, max: max);
     final obj = {
       // ignore: unnecessary_null_comparison
       [field]: message == null
